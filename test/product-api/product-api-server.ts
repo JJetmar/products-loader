@@ -22,7 +22,7 @@ console.table([
     ["minPrice", minPrice],
     ["maxPrice", maxPrice],
     ["appPort", appPort],
-])
+]);
 
 console.log("Generating products...");
 const products = Array.from({length: productsTotalCount}).map((_, index) => {
@@ -63,7 +63,7 @@ router.get("/products", (ctx) => {
 
 productApiServer.use(router.routes()).use(router.allowedMethods());
 
-let instace: ReturnType<typeof productApiServer.listen>;
-export const productsApiStart = () => { instace = productApiServer.listen(appPort) }
-export const productsApiStop = () => { instace?.close(); }
+let instance: ReturnType<typeof productApiServer.listen>;
+export const productsApiStart = () => { instance?.close(); instance = productApiServer.listen(appPort) }
+export const productsApiStop = () => { instance?.close(); }
 console.log(`Product API is listening on port: ${appPort}.`);
