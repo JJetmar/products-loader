@@ -1,4 +1,4 @@
-import {loadAllProducts, Product} from "../src/load-all-products";
+import {loadAllProducts, Product} from "../src/load-products";
 import {productsApiStart, productsApiStop} from "./product-api/product-api-server";
 
 describe("loading all products", () => {
@@ -14,8 +14,9 @@ describe("loading all products", () => {
 
     it('Should load all products', async () => {
         products = await loadAllProducts("http://localhost:5555/products", 0, 100_000);
-        expect(products.length).toBe(99_999);
-    }, 99999);
+
+        expect(products.length).toBe(999_999);
+    }, 99999_999);
 
     it('Should contain no duplicities', async () => {
         const productIds = new Set();
@@ -29,6 +30,6 @@ describe("loading all products", () => {
             }
         }
         expect(duplicities).toBe(0);
-    }, 999);
+    });
 });
 
