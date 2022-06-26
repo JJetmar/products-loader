@@ -1,14 +1,13 @@
 import Koa from 'koa';
 import KoaRouter from 'koa-router';
 import { faker } from '@faker-js/faker';
-import * as fs from "fs";
 
 const productApiServer = new Koa();
 const router = new KoaRouter();
 
-const seed = parseInt(process.env.randomSeed ?? "1246534");
-const productsTotalCount = parseInt(process.env.productsTotalCount ?? "100000");
-const productsMaxPerRequest = parseInt(process.env.productsMaxPerRequest ?? "100");
+const seed = parseInt(process.env.randomSeed ?? "1234");
+const productsTotalCount = parseInt(process.env.productsTotalCount ?? "999999");
+const productsMaxPerRequest = parseInt(process.env.productsMaxPerRequest ?? "1000");
 const minPrice = parseFloat(process.env.productMinPrice ?? "0");
 const maxPrice = parseFloat(process.env.productMaxPrice ?? "100000");
 const appPort = parseInt(process.env.port ?? "5555");
@@ -16,6 +15,7 @@ const appPort = parseInt(process.env.port ?? "5555");
 faker.seed(seed);
 
 console.log("Running Products API");
+console.log("Configuration:");
 console.table({
     seed,
     productsTotalCount,
@@ -25,7 +25,7 @@ console.table({
     appPort
 });
 
-console.log("Generating products...");
+console.log(`Generating ${productsTotalCount} products...`);
 const products = Array.from({length: productsTotalCount}).map((_, index) => {
     return {
         id: index,
@@ -34,14 +34,13 @@ const products = Array.from({length: productsTotalCount}).map((_, index) => {
     }
 });
 
-fs.writeFileSync("./products.json", JSON.stringify(products, null, 2), "utf8");
 console.log(`${products.length} products generated.`);
 
 router.get("/products", (ctx) => {
     const filterMinPrice = ctx.query.minPrice != null ? parseFloat(ctx.query.minPrice as string) : null;
     const filterMaxPrice = ctx.query.maxPrice != null ? parseFloat(ctx.query.maxPrice as string) : null;
 
-    console.log({filterMinPrice, filterMaxPrice})
+    console.debug(`Incoming request for products in price range from ${filterMinPrice} to ${filterMaxPrice}.`);
 
     // Filters products by minPrice and maxPrice
     const filteredProducts = products

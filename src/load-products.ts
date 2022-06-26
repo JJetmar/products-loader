@@ -22,16 +22,14 @@ const divide = (range: [min: Big, max: Big], numberOfGroups: number): Array<[Big
     const full = max.minus(min);
     const sizeOfGroup = full.div(numberOfGroups);
 
-    return Array.from({length: numberOfGroups}).map((_, index) => {
-        const result = [min.plus((sizeOfGroup.times(index))), min.plus(sizeOfGroup.times(index + 1)).minus(precision)] as [Big, Big];
-        console.log([result[0].toString(), result[1].toString()]);
-        return result;
-    });
+    return Array.from({length: numberOfGroups}).map((_, index) =>
+        [min.plus((sizeOfGroup.times(index))), min.plus(sizeOfGroup.times(index + 1)).minus(precision)]
+    );
 }
 
-export async function fetchProducts(endpoint: string, minPrice: number, maxPrice: number): Promise<ProductApiResponse> {
+export async function fetchProducts(endpoint: string, minPrice: number, maxPrice: number) {
     try {
-        console.count("CLIENT")
+        console.debug(`Outgoing request for products in price range from ${minPrice} to ${maxPrice}.`);
         return (await client.get(endpoint, {
             params: {
                 minPrice,
@@ -44,8 +42,6 @@ export async function fetchProducts(endpoint: string, minPrice: number, maxPrice
     }
 }
 
-//const fetchProductLimited = limiter.wrap(fetchProducts);
-
 export async function loadAllProducts(endpoint: string, minPriceLimit: number | Big, maxPriceLimit: number | Big): Promise<Array<Product>> {
     const minPrice = Big(minPriceLimit);
     const maxPrice = Big(maxPriceLimit);
@@ -55,7 +51,6 @@ export async function loadAllProducts(endpoint: string, minPriceLimit: number | 
     if (maxPrice.lt(minPrice)) throw new Error("Min Price cannot be lower than Max Price!")
 
     const {count, total, products} = await fetchProducts(endpoint, minPrice.toNumber(), maxPrice.toNumber());
-
     if (count === total) {
         // If we already fetched all products then we can return them.
         return products;
@@ -66,18 +61,10 @@ export async function loadAllProducts(endpoint: string, minPriceLimit: number | 
     const numberOfGroups = Math.ceil(total / count);
     console.log({total, count})
 
-    //const requests = divide([minPrice, maxPrice], sizeOfGroup)
-    // .map(([newMin, newMax]) => await loadAllProducts(endpoint, newMin, newMax)
-    //             .then(products => allProducts.push(...products)));
-
     for (const [newMin, newMax] of divide([minPrice, maxPrice], numberOfGroups)) {
         await loadAllProducts(endpoint, newMin, newMax)
             .then(products => allProducts.push(...products))
     }
-
-    console.log("WAITING", allProducts.length)
-
-    //await Promise.all(requests);
 
     return allProducts;
 }
