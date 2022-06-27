@@ -1,5 +1,4 @@
 import Axios from "axios";
-import Big from "big.js";
 import { ConcurrencyManager } from "axios-concurrency";
 
 const client = Axios.create();
@@ -16,25 +15,25 @@ interface ProductApiResponse {
     products: Array<Product>;
 }
 
-const precision = Big("0.00001");
+const precision = 0.00001;
 
 // Setup Axios concurrent requests limit.
 ConcurrencyManager(client, parseInt(process.env.MAX_CONCURRENT_REQUESTS ?? "100"));
 
 /**
  * It takes a range and divides it into a given amount of parts
- * @param range - [min: Big, max: Big] - the range of numbers to divide
+ * @param range - [min: number, max: number] - the range of numbers to divide
  * @param {number} priceRangeCount - number - the amount of parts to divide the range into
- * @returns An array of arrays of Big numbers.
+ * @returns An array of arrays of numbers.
  */
-const divideToRanges = (range: [min: Big, max: Big], priceRangeCount: number): Array<[Big, Big]> => {
+const divideToRanges = (range: [min: number, max: number], priceRangeCount: number): Array<[number, number]> => {
     const [min, max] = range;
-    const currentRangeSize = max.minus(min);
-    const sizeOfGroup = currentRangeSize.div(priceRangeCount);
+    const currentRangeSize = max - min;
+    const sizeOfGroup = currentRangeSize / priceRangeCount;
 
     return Array.from({ length: priceRangeCount }).map((_, index) => [
-        min.plus(sizeOfGroup.times(index)),
-        min.plus(sizeOfGroup.times(index + 1)).minus(precision)
+        min + (sizeOfGroup * index),
+        min + (sizeOfGroup * (index + 1)) - precision
     ]);
 };
 
@@ -64,24 +63,24 @@ export async function fetchProducts(endpoint: string, minPrice: number, maxPrice
 /**
  * We divide the price range into groups, fetch products from each group, and then merge the results
  * @param {string} endpoint - The endpoint to fetch products from.
- * @param {number | Big} minPriceLimit - The minimum price of the products you want to fetch.
- * @param {number | Big} maxPriceLimit - The maximum price of the product.
+ * @param {number} minPriceLimit - The minimum price of the products you want to fetch.
+ * @param {number} maxPriceLimit - The maximum price of the product.
  * @returns An array of products.
  */
 export async function loadProducts(
     endpoint: string,
-    minPriceLimit: number | Big,
-    maxPriceLimit: number | Big
+    minPriceLimit: number,
+    maxPriceLimit: number
 ): Promise<Array<Product>> {
-    const minPrice = Big(minPriceLimit);
-    const maxPrice = Big(maxPriceLimit);
+    const minPrice = minPriceLimit;
+    const maxPrice = maxPriceLimit;
 
-    if (minPrice.lt(0)) throw new Error("Min Price cannot be lower than 0!");
-    if (maxPrice.lt(0)) throw new Error("Max Price cannot be lower than 0!");
-    if (maxPrice.lt(minPrice)) throw new Error("Min Price cannot be lower than Max Price!");
+    if (minPrice < 0) throw new Error("Min Price cannot be lower than 0!");
+    if (maxPrice < 0) throw new Error("Max Price cannot be lower than 0!");
+    if (maxPrice < minPrice) throw new Error("Min Price cannot be lower than Max Price!");
 
     // Fetch Products based on endpoint, and price range.
-    const { count, total, products } = await fetchProducts(endpoint, minPrice.toNumber(), maxPrice.toNumber());
+    const { count, total, products } = await fetchProducts(endpoint, minPrice, maxPrice);
     if (count === total) {
         // Fetched all possible products in given price range.
         return products;
