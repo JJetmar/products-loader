@@ -21,12 +21,12 @@ const precision = Big("0.00001");
 // Setup Axios concurrent requests limit.
 ConcurrencyManager(client, parseInt(process.env.MAX_CONCURRENT_REQUESTS ?? "100"));
 
-const divide = (range: [min: Big, max: Big], numberOfGroups: number): Array<[Big, Big]> => {
+const divide = (range: [min: Big, max: Big], partsAmount: number): Array<[Big, Big]> => {
     const [min, max] = range;
     const full = max.minus(min);
-    const sizeOfGroup = full.div(numberOfGroups);
+    const sizeOfGroup = full.div(partsAmount);
 
-    return Array.from({ length: numberOfGroups }).map((_, index) => [
+    return Array.from({ length: partsAmount }).map((_, index) => [
         min.plus(sizeOfGroup.times(index)),
         min.plus(sizeOfGroup.times(index + 1)).minus(precision)
     ]);
