@@ -17,19 +17,18 @@ interface ProductApiResponse {
 }
 
 const precision = Big("0.00001");
-const MAX_CONCURRENT_REQUESTS = parseInt(process.env.maxConcurrentRequests ?? "100");
 
-ConcurrencyManager(client, MAX_CONCURRENT_REQUESTS);
+// Setup Axios concurrent requests limit.
+ConcurrencyManager(client, parseInt(process.env.MAX_CONCURRENT_REQUESTS ?? "100"));
 
 const divide = (range: [min: Big, max: Big], numberOfGroups: number): Array<[Big, Big]> => {
-    console.log(range.map((a) => a.toString()));
     const [min, max] = range;
     const full = max.minus(min);
     const sizeOfGroup = full.div(numberOfGroups);
 
     return Array.from({ length: numberOfGroups }).map((_, index) => [
         min.plus(sizeOfGroup.times(index)),
-        min.plus(sizeOfGroup.times(index + 1)).minus(precision),
+        min.plus(sizeOfGroup.times(index + 1)).minus(precision)
     ]);
 };
 
@@ -39,8 +38,8 @@ export async function fetchProducts(endpoint: string, minPrice: number, maxPrice
             await client.get<ProductApiResponse>(endpoint, {
                 params: {
                     minPrice,
-                    maxPrice,
-                },
+                    maxPrice
+                }
             })
         ).data;
     } catch (e) {
@@ -61,11 +60,7 @@ export async function loadProducts(
     if (maxPrice.lt(0)) throw new Error("Max Price cannot be lower than 0!");
     if (maxPrice.lt(minPrice)) throw new Error("Min Price cannot be lower than Max Price!");
 
-    const { count, total, products } = await fetchProducts(
-        endpoint,
-        minPrice.toNumber(),
-        maxPrice.toNumber()
-    );
+    const { count, total, products } = await fetchProducts(endpoint, minPrice.toNumber(), maxPrice.toNumber());
     if (count === total) {
         // If we already fetched all products then we can return them.
         return products;

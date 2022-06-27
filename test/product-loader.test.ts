@@ -1,33 +1,28 @@
 import { loadProducts, Product } from "../src/load-products";
 import { productsApiStart, productsApiStop } from "./product-api/product-api-server";
 
-describe("loading all products", () => {
-    beforeAll(() => {
-        productsApiStart();
-    });
+let products: Array<Product>;
 
-    afterAll(() => {
-        productsApiStop();
-    });
+const minPriceLimit = parseFloat(process.env.PRODUCT_MIN_PRICE ?? "0");
+const maxPriceLimit = parseFloat(process.env.PRODUCT_MAX_PRICE ?? "100000");
+const port = parseFloat(process.env.PORT ?? "5555");
 
-    let products: Array<Product>;
+beforeAll(() => {
+    productsApiStart();
+});
 
-    it("Should load all products", async () => {
-        products = await loadProducts("http://localhost:5555/products", 0, 100_000);
-        expect(products.length).toBe(999_999);
-    }, 99999_999);
+afterAll(() => {
+    productsApiStop();
+});
 
-    it("Should contain no duplicities", async () => {
-        const productIds = new Set();
-        let duplicities = 0;
+it("Should load all products", async () => {
+    products = await loadProducts(`http://localhost:${port}/products`, minPriceLimit, maxPriceLimit);
 
-        for (const product of products) {
-            if (productIds.has(product.id)) {
-                duplicities++;
-            } else {
-                productIds.add(product.id);
-            }
-        }
-        expect(duplicities).toBe(0);
-    });
+    expect(products.length).toBe(parseInt(process.env.PRODUCTS_TOTAL_COUNT ?? "999999"));
+}, 2 * 60 * 1000);
+
+it("Should contain no duplicities", async () => {
+    const uniqueProductIds = new Set(products.map((product) => product.id));
+
+    expect(products.length).toEqual(uniqueProductIds.size);
 });

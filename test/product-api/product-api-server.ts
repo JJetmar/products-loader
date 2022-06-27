@@ -5,46 +5,44 @@ import { faker } from "@faker-js/faker";
 const productApiServer = new Koa();
 const router = new KoaRouter();
 
-const seed = parseInt(process.env.randomSeed ?? "1234");
-const productsTotalCount = parseInt(process.env.productsTotalCount ?? "999999");
-const productsMaxPerRequest = parseInt(process.env.productsMaxPerRequest ?? "1000");
-const minPrice = parseFloat(process.env.productMinPrice ?? "0");
-const maxPrice = parseFloat(process.env.productMaxPrice ?? "100000");
-const appPort = parseInt(process.env.port ?? "5555");
+const seed = parseInt(process.env.RANDOM_SEED ?? "1234");
+const productsTotalCount = parseInt(process.env.PRODUCTS_TOTAL_COUNT ?? "999999");
+const productsMaxPerRequest = parseInt(process.env.PRODUCTS_MAX_PER_REQUEST ?? "1000");
+const minPrice = parseFloat(process.env.PRODUCT_MIN_PRICE ?? "0");
+const maxPrice = parseFloat(process.env.PRODUCT_MAX_PRICE ?? "100000");
+const appPort = parseInt(process.env.PORT ?? "5555");
 
 faker.seed(seed);
 
-console.log("Running Products API");
-console.log("Configuration:");
+console.debug("Running Products API");
+console.debug("Configuration:");
 console.table({
     seed,
     productsTotalCount,
     productsMaxPerRequest,
     minPrice,
     maxPrice,
-    appPort,
+    appPort
 });
 
-console.log(`Generating ${productsTotalCount} products...`);
+console.debug(`Generating ${productsTotalCount} products...`);
 const products = Array.from({ length: productsTotalCount }).map((_, index) => {
     return {
         id: index,
         name: faker.commerce.productName(),
-        price: faker.datatype.number({ min: minPrice, max: maxPrice, precision: 0.01 }),
+        price: faker.datatype.number({ min: minPrice, max: maxPrice, precision: 0.01 })
     };
 });
 
-console.log(`${products.length} products generated.`);
+console.debug(`${products.length} products generated.`);
+
+let requestsCounter = 0;
 
 router.get("/products", async (ctx, next) => {
-    const filterMinPrice =
-        ctx.query.minPrice != null ? parseFloat(ctx.query.minPrice as string) : null;
-    const filterMaxPrice =
-        ctx.query.maxPrice != null ? parseFloat(ctx.query.maxPrice as string) : null;
+    const filterMinPrice = ctx.query.minPrice != null ? parseFloat(ctx.query.minPrice as string) : null;
+    const filterMaxPrice = ctx.query.maxPrice != null ? parseFloat(ctx.query.maxPrice as string) : null;
 
-    console.debug(
-        `Incoming request for products in price range from ${filterMinPrice} to ${filterMaxPrice}.`
-    );
+    console.debug(`Incoming request for products in price range from ${filterMinPrice} to ${filterMaxPrice}.`);
 
     // Filters products by minPrice and maxPrice
     const filteredProducts = products.filter((product) => {
@@ -63,11 +61,13 @@ router.get("/products", async (ctx, next) => {
 
     console.debug(`Returning response for ${filterMinPrice} to ${filterMaxPrice}.`);
 
+    requestsCounter++;
+
     ctx.set("Content-Type", "application/json");
     ctx.body = JSON.stringify({
         total: filteredProducts.length,
         count: productResults.length,
-        products: productResults,
+        products: productResults
     });
     await next();
 });
@@ -81,7 +81,8 @@ export const productsApiStart = () => {
 };
 
 export const productsApiStop = () => {
+    console.debug(`HTTP requests made: ${requestsCounter}`);
     instance?.close();
 };
 
-console.log(`Product API is listening on port: ${appPort}.`);
+console.debug(`Product API is listening on port: ${appPort}.`);
