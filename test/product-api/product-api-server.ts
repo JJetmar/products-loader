@@ -36,7 +36,7 @@ const products = Array.from({ length: productsTotalCount }).map((_, index) => {
 
 console.log(`${products.length} products generated.`);
 
-router.get("/products", (ctx) => {
+router.get("/products", async (ctx, next) => {
     const filterMinPrice =
         ctx.query.minPrice != null ? parseFloat(ctx.query.minPrice as string) : null;
     const filterMaxPrice =
@@ -61,12 +61,15 @@ router.get("/products", (ctx) => {
     // Limits number of resulted products
     const productResults = filteredProducts.slice(0, productsMaxPerRequest);
 
+    console.debug(`Returning response for ${filterMinPrice} to ${filterMaxPrice}.`);
+
     ctx.set("Content-Type", "application/json");
     ctx.body = JSON.stringify({
         total: filteredProducts.length,
         count: productResults.length,
         products: productResults,
     });
+    await next();
 });
 
 productApiServer.use(router.routes()).use(router.allowedMethods());
@@ -76,6 +79,7 @@ export const productsApiStart = () => {
     instance?.close();
     instance = productApiServer.listen(appPort);
 };
+
 export const productsApiStop = () => {
     instance?.close();
 };

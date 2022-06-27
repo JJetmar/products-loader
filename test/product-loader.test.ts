@@ -1,4 +1,4 @@
-import { loadAllProducts, Product } from "../src/load-products";
+import { loadProducts, Product } from "../src/load-products";
 import { productsApiStart, productsApiStop } from "./product-api/product-api-server";
 
 describe("loading all products", () => {
@@ -13,8 +13,7 @@ describe("loading all products", () => {
     let products: Array<Product>;
 
     it("Should load all products", async () => {
-        products = await loadAllProducts("http://localhost:5555/products", 0, 100_000);
-
+        products = await loadProducts("http://localhost:5555/products", 0, 100_000);
         expect(products.length).toBe(999_999);
     }, 99999_999);
 
