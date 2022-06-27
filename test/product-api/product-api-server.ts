@@ -5,6 +5,7 @@ import { faker } from "@faker-js/faker";
 const productApiServer = new Koa();
 const router = new KoaRouter();
 
+// Environment variables
 const seed = parseInt(process.env.RANDOM_SEED ?? "1234");
 const productsTotalCount = parseInt(process.env.PRODUCTS_TOTAL_COUNT ?? "999999");
 const productsMaxPerRequest = parseInt(process.env.PRODUCTS_MAX_PER_REQUEST ?? "1000");
@@ -26,6 +27,8 @@ console.table({
 });
 
 console.debug(`Generating ${productsTotalCount} products...`);
+
+// Generate random Products
 const products = Array.from({ length: productsTotalCount }).map((_, index) => {
     return {
         id: index,
@@ -36,7 +39,7 @@ const products = Array.from({ length: productsTotalCount }).map((_, index) => {
 
 console.debug(`${products.length} products generated.`);
 
-let requestsCounter = 0;
+let requestCounter = 0;
 
 router.get("/products", async (ctx, next) => {
     const filterMinPrice = ctx.query.minPrice != null ? parseFloat(ctx.query.minPrice as string) : null;
@@ -61,8 +64,9 @@ router.get("/products", async (ctx, next) => {
 
     console.debug(`Returning response for ${filterMinPrice} to ${filterMaxPrice}.`);
 
-    requestsCounter++;
+    requestCounter++;
 
+    // Response as a JSON
     ctx.set("Content-Type", "application/json");
     ctx.body = JSON.stringify({
         total: filteredProducts.length,
@@ -75,13 +79,20 @@ router.get("/products", async (ctx, next) => {
 productApiServer.use(router.routes()).use(router.allowedMethods());
 
 let instance: ReturnType<typeof productApiServer.listen>;
+
+/**
+ * It starts the Product API server on the port specified in the `appPort` variable
+ */
 export const productsApiStart = () => {
     instance?.close();
     instance = productApiServer.listen(appPort);
 };
 
+/**
+ * It stops the Product API server.
+ */
 export const productsApiStop = () => {
-    console.debug(`HTTP requests made: ${requestsCounter}`);
+    console.debug(`HTTP requests made: ${requestCounter}`);
     instance?.close();
 };
 
