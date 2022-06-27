@@ -50,7 +50,7 @@ Based on the assignment there are few limitations for data that comes from Produ
 ## Possible improvements
 
 There are few thing that are not expressly mentioned in the assignment and are not included in the final version of this
-project. When there would be assigned with much more data or HW or network limitations then we could get into some
+project. If there would be assignment with much more data or HW or network limitations then we could get into some
 troubles. The following list includes some of these improvements that could be done.
 
 - **Products Loader**
