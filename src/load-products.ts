@@ -24,17 +24,20 @@ ConcurrencyManager(client, parseInt(process.env.MAX_CONCURRENT_REQUESTS ?? "100"
  * It takes a range and divides it into a given amount of parts
  * @param range - [min: number, max: number] - the range of numbers to divide
  * @param {number} priceRangeCount - number - the amount of parts to divide the range into
- * @returns An array of arrays of numbers.
+ * @returns An array of new price ranges.
  */
 const divideToRanges = (range: [min: number, max: number], priceRangeCount: number): Array<[number, number]> => {
     const [min, max] = range;
     const currentRangeSize = max - min;
     const sizeOfGroup = currentRangeSize / priceRangeCount;
 
-    return Array.from({ length: priceRangeCount }).map((_, index) => [
-        min + (sizeOfGroup * index),
-        min + (sizeOfGroup * (index + 1)) - precision
-    ]);
+    return Array.from({ length: priceRangeCount }).map((_, index) => {
+        const isLast = index + 1 === priceRangeCount;
+        return [
+            min + (sizeOfGroup * index),
+            min + (sizeOfGroup * (index + 1)) - (isLast ? 0 : 1) * precision
+        ];
+    });
 };
 
 /**
