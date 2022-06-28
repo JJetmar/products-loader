@@ -86,6 +86,7 @@ let instance: ReturnType<typeof productApiServer.listen>;
 export const productsApiStart = () => {
     instance?.close();
     instance = productApiServer.listen(appPort);
+    console.debug(`Product API is listening on port: ${appPort}.`);
 };
 
 /**
@@ -95,5 +96,3 @@ export const productsApiStop = () => {
     console.debug(`HTTP requests made: ${requestCounter}`);
     instance?.close();
 };
-
-console.debug(`Product API is listening on port: ${appPort}.`);
