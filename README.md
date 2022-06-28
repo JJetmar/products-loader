@@ -45,7 +45,7 @@ docker-compose up
 Based on the assignment there are few limitations for data that comes from Product API.
 
 - Prices of Products are defined with precision of max 3 decimals.
-- There are not more than `MAX_PRODUCTS_PER_PAGE` (default 1000) of products with exactly same price.
+- There are not more than `PRODUCTS_MAX_PER_REQUEST` (default 1000) of products with exactly same price.
 
 ## Possible improvements
 
